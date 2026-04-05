@@ -1,0 +1,9 @@
+﻿global using Microsoft.EntityFrameworkCore;
+global using FinancialTransfers.Domain.Entites;
+global using FinancialTransfers.Application.Interfaces.IRepository;
+global using FinancialTransfers.Infrastructure.Data;
+global using FinancialTransfers.Application.Interfaces.IServices;
+global using FinancialTransfers.Application.Interfaces.IUnitOfWork;
+global using FinancialTransfers.Application.Abstractions;
+global using FinancialTransfers.Application.Contracts.Account;
+global using FinancialTransfers.Application.ErrorHandler;
