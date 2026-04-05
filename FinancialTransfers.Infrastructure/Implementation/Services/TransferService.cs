@@ -71,6 +71,9 @@ public class TransferService(IUnitOfWork unitOfWork, ITransferRepository transfe
 		if (request.Fees > request.Amount)
 			return Result.Failure<TransferResponse>(TransferError.InvalidFees);
 
+		fromAccount.Balance -= request.Amount - request.Fees;
+		toAccount.Balance += request.Amount;
+		
 		var transfer = request.Adapt<Transfer>();
 
 		await _unitOfWork.Transfers.AddAsync(transfer, cancellationToken);
