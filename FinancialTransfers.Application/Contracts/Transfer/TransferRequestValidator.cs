@@ -30,7 +30,7 @@ public class TransferRequestValidator : AbstractValidator<TransferRequest>
 		RuleFor(x => x.Status)
 			.NotEmpty()
 			.WithMessage("Status must be found")
-			.Must(BePendingOrCancelledOrCompleted)
+			.Must(BePending)
 			.WithMessage("Status should be Pending or Completed or Cancelled");
 
 		RuleFor(x => x.Description)
@@ -45,9 +45,9 @@ public class TransferRequestValidator : AbstractValidator<TransferRequest>
 
 	}
 
-	private bool BePendingOrCancelledOrCompleted(string status)
+	private bool BePending(string status)
 	{
-		if (status == "Pending" || status == "Completed" || status == "Cancelled")
+		if (status == "Pending" )
 			return true;
 
 		return false;

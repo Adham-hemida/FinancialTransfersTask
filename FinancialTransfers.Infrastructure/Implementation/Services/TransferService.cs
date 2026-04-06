@@ -1,4 +1,5 @@
-﻿using FinancialTransfers.Application.Contracts.Common;
+﻿using Azure.Core;
+using FinancialTransfers.Application.Contracts.Common;
 using FinancialTransfers.Application.Contracts.Summary;
 using FinancialTransfers.Application.Contracts.Transfer;
 using FinancialTransfers.Domain.Consts;
@@ -70,9 +71,6 @@ public class TransferService(IUnitOfWork unitOfWork, ITransferRepository transfe
 
 		if (request.Fees > request.Amount)
 			return Result.Failure<TransferResponse>(TransferError.InvalidFees);
-
-		fromAccount.Balance -= request.Amount - request.Fees;
-		toAccount.Balance += request.Amount;
 		
 		var transfer = request.Adapt<Transfer>();
 
@@ -84,7 +82,10 @@ public class TransferService(IUnitOfWork unitOfWork, ITransferRepository transfe
 
 	public async Task<Result> ToggleAsCompletedAsync(int id, CancellationToken cancellationToken)
 	{
-		var transfer = await _unitOfWork.Transfers.GetByIdAsync(id, cancellationToken);
+		var transfer = await _unitOfWork.Transfers.GetAsQueryable()
+			.Include(t => t.ToAccount)
+			.Include(t => t.FromAccount)
+			.SingleOrDefaultAsync(t=>t.Id==id);
 
 		if (transfer is null)
 			return Result.Failure(TransferError.TransferNotFound);
@@ -93,9 +94,12 @@ public class TransferService(IUnitOfWork unitOfWork, ITransferRepository transfe
 			return Result.Failure(TransferError.CannotCompletedTransfer);
 
 		transfer.Status = TransferStatus.Completed;
+		transfer.ToAccount.Balance += transfer.Amount;
+		transfer.FromAccount.Balance -= transfer.Amount - transfer.Fees;
 
-		_unitOfWork.Transfers.Update(transfer);
-		await _unitOfWork.CompleteAsync(cancellationToken);
+	   	_unitOfWork.Transfers.Update(transfer);
+		 await _unitOfWork.CompleteAsync(cancellationToken);
+		
 		return Result.Success();
 	}
 
